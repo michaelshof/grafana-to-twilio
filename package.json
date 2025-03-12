@@ -1,0 +1,28 @@
+{
+  "name": "grafana-to-twilio",
+  "version": "0.1.0",
+  "description": "Receives a Grafana Webhook to create a call via Twilio",
+  "keywords": [
+    "grafana",
+    "twilio",
+    "webhook"
+  ],
+  "homepage": "https://github.com/michaelshof/grafana-to-twilio#readme",
+  "bugs": {
+    "url": "https://github.com/michaelshof/grafana-to-twilio/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michaelshof/grafana-to-twilio.git"
+  },
+  "license": "MIT",
+  "author": "Michael Nowak",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "twilio": "^5.5.0"
+  }
+}
