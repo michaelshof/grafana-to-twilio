@@ -1,9 +1,9 @@
 interface Contact {
   phone_number: string
 }
-type Contacts = { [id: string]: Contact }
+type Contacts = Record<string, Contact>
 
 type ContactGroup = Array<string>
-type ContactGroups = { [id: string]: ContactGroup }
+type ContactGroups = Record<string, ContactGroup>
 
 export { Contacts, ContactGroups }
