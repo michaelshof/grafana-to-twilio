@@ -8,11 +8,8 @@ import twilioSDK from 'twilio'
 import { Contacts, ContactGroups } from './types'
 
 dotenv.config()
+import { file_paths, httpd_config, twilio_config } from './configs'
 
-const file_paths = {
-  contacts: process.env.CONTACTS_FILE_PATH || './contacts.json',
-  contact_groups: process.env.CONTACT_GROUPS_FILE_PATH || './contact_groups.json',
-}
 ensure_file_paths_exist(file_paths)
 
 function ensure_file_paths_exist(file_paths: Record<string, string>) {
@@ -57,10 +54,6 @@ function ensure_contact_groups_valid(contact_groups: ContactGroups) {
   }
 }
 
-const httpd_config = {
-  port: process.env.HTTPD_PORT ? parseInt(process.env.HTTPD_PORT) : 3000,
-}
-
 const httpd_port = httpd_config.port
 const httpd = express()
 httpd.use(morgan('combined'))
@@ -93,11 +86,6 @@ const httpd_listener = httpd.listen(httpd_port, () => {
   console.log('HTTPD:', `Listening on port ${httpd_port}`)
 })
 
-const twilio_config = {
-  account_sid: process.env.TWILIO_ACCOUNT_SID || '',
-  auth_token: process.env.TWILIO_AUTH_TOKEN || '',
-  log_level: 'debug',
-}
 const twilio_client = twilioSDK(twilio_config.account_sid, twilio_config.auth_token, {
   logLevel: twilio_config.log_level,
 })
