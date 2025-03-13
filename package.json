@@ -18,21 +18,23 @@
   "license": "MIT",
   "author": "Michael Nowak",
   "type": "commonjs",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "npx tsc",
     "lint": "npx eslint src",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "test": "npx jest",
     "watch": "npx tsc --watch"
   },
   "dependencies": {
     "@types/node": "^22.13.10",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "twilio": "^5.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "eslint": "^9.22.0",
     "globals": "^16.0.0",
