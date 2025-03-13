@@ -1,72 +1,63 @@
 import fs from 'node:fs'
 
+import bodyParser from 'body-parser'
+import timestampPatch from 'console-stamp'
 import dotenv from 'dotenv'
+import ejs from 'ejs'
 import express from 'express'
 import morgan from 'morgan'
 import twilioSDK from 'twilio'
 
-import { Contacts, ContactGroups } from './types'
+import { Contact, Contacts, ContactGroups } from './types'
+import { ensure_file_paths_exist, ensure_contacts_valid, ensure_contact_groups_valid } from './validations'
+
+timestampPatch(console)
 
 dotenv.config()
 import { file_paths, httpd_config, twilio_config } from './configs'
 
 ensure_file_paths_exist(file_paths)
 
-function ensure_file_paths_exist(file_paths: Record<string, string>) {
-  for (const file_path_id in file_paths) {
-    const file_path = file_paths[file_path_id]
-
-    if (file_path.length === 0) {
-      throw new Error(`${file_path_id} file path is not set`)
-    }
-    if (!fs.existsSync(file_path)) {
-      throw new Error(`${file_path_id} file path does not exist: ${file_path}`)
-    }
-  }
-}
 const contacts_raw = JSON.parse(fs.readFileSync(file_paths.contacts, { encoding: 'utf-8' }))
 const contact_groups_raw = JSON.parse(fs.readFileSync(file_paths.contact_groups, { encoding: 'utf-8' }))
 
 const contacts = contacts_raw as Contacts
-ensure_contacts_valid(contacts)
-console.log('CONTACTS:', `Loaded ${Object.keys(contacts).length} contacts`)
-
 const contact_groups = contact_groups_raw as ContactGroups
-ensure_contact_groups_valid(contact_groups)
-console.log('CONTACT-GROUPS:', `Loaded ${Object.keys(contact_groups).length} contact groups`)
 
-function ensure_contacts_valid(contacts: Contacts) {
-  if (Object.keys(contacts).length === 0) {
-    throw new Error('No contacts defined')
-  }
-}
+ensure_contacts_valid(contacts)
+console.info('CONTACTS:', `Loaded ${Object.keys(contacts).length} contacts`)
+ensure_contact_groups_valid(contact_groups, contacts)
+console.info('CONTACT-GROUPS:', `Loaded ${Object.keys(contact_groups).length} contact groups`)
 
-function ensure_contact_groups_valid(contact_groups: ContactGroups) {
-  for (const contact_group_id in contact_groups) {
-    const contact_group = contact_groups[contact_group_id]
-    if (contact_group.length === 0) continue
-
-    for (const contact_id of contact_group) {
-      if (contact_id in contacts) continue
-
-      throw new Error(`Unknown contact ${contact_id} in contact group ${contact_group_id}`)
-    }
-  }
-}
+const twiml_ejs = fs.readFileSync(file_paths.twiml_ejs, { encoding: 'utf-8' })
+const twiml_template = ejs.compile(twiml_ejs)
 
 const httpd_port = httpd_config.port
 const httpd = express()
 httpd.use(morgan('combined'))
+httpd.use(bodyParser.json())
 
 httpd.post('/call/contact/:id', (request, response) => {
   const contact_id = request.params.id
 
   if (contact_id in contacts) {
     const contact = contacts[contact_id]
+    const twiml = twiml_template(request.body)
+    console.debug('HTTPD:', 'Rendered TwiML:', twiml)
 
-    response.status(200).json({ message: 'Contact found', contact: contact, status: 200 })
+    twilio_client.calls.create({
+      from: twilio_config.phone_number,
+      to: contact.phone_number,
+      twiml: twiml,
+    }).then((call_instance) => {
+      console.info('TWILIO:', `Call from ${call_instance.from} to ${call_instance.to} with SID ${call_instance.sid} has status ${call_instance.status}`)
+    }).catch((error) => {
+      console.error('TWILIO:', 'Call Error:', error)
+    })
+
+    response.status(200).json({ message: 'Call created', call: { contact: contact }, status: 200 })
   } else {
-    response.status(404).json({ message: 'Contact not found', status: 404 })
+    response.status(404).json({ message: 'Contact not found', contact_id: contact_id, status: 404 })
   }
 })
 
@@ -75,33 +66,53 @@ httpd.post('/call/contact_group/:id', (request, response) => {
 
   if (contact_group_id in contact_groups) {
     const contact_group = contact_groups[contact_group_id]
+    const twiml = twiml_template(request.body)
+    console.debug('HTTPD:', 'Rendered TwiML:', twiml)
 
-    response.status(200).json({ message: 'Contact found', contact_group: contact_group, status: 200 })
+    const contact_group_contacts: Array<Contact> = []
+    for (const contact_id of contact_group) {
+      const contact = contacts[contact_id]
+
+      twilio_client.calls.create({
+        from: twilio_config.phone_number,
+        to: contact.phone_number,
+        twiml: twiml,
+      }).then((call_instance) => {
+        console.info('TWILIO:', `Call from ${call_instance.from} to ${call_instance.to} with SID ${call_instance.sid} has status ${call_instance.status}`)
+      }).catch((error) => {
+        console.error('TWILIO:', 'Call Error:', error)
+      })
+
+      contact_group_contacts.push(contact)
+    }
+
+    response.status(200).json({ message: 'Calls created', calls: { contact_group: contact_group_contacts }, status: 200 })
   } else {
-    response.status(404).json({ message: 'Contact not found', status: 404 })
+    response.status(404).json({ message: 'Contact Group not found', contact_group_id: contact_group_id, status: 404 })
   }
 })
 
 const httpd_listener = httpd.listen(httpd_port, () => {
-  console.log('HTTPD:', `Listening on port ${httpd_port}`)
+  console.info('HTTPD:', `Listening on port ${httpd_port}`)
 })
 
 const twilio_client = twilioSDK(twilio_config.account_sid, twilio_config.auth_token, {
   logLevel: twilio_config.log_level,
+  timeout: twilio_config.timeout,
 })
 
 const twilio_balance = twilio_client.balance
-console.log('TWILIO:', 'Account Balance:', twilio_balance)
+console.debug('TWILIO:', 'Account Balance:', twilio_balance)
 
 process.on('SIGINT', () => {
   const promises: Array<Promise<boolean>> = []
-  console.log('')
-  console.log('SIGINT:', 'Processing signal')
+  console.debug('')
+  console.debug('SIGINT:', 'Processing signal')
 
   if (httpd_listener) {
     const httpd_promise = new Promise<boolean>((resolve) => {
       httpd_listener.close(() => {
-        console.log('HTTPD:', 'Socket closed')
+        console.info('HTTPD:', 'Socket closed')
       })
       resolve(true)
     })

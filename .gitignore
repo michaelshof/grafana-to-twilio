@@ -4,5 +4,5 @@
 
 /.env
 /.env.*
-/contacts.json
-/contact_groups.json
+/*.json
+/*.ejs
