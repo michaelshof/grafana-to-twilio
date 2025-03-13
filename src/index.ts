@@ -1,6 +1,17 @@
+import fs from 'node:fs'
+
 import dotenv from 'dotenv'
 import express from 'express'
+import morgan from 'morgan'
 import twilioSDK from 'twilio'
+
+import { Contacts, ContactGroups } from './types'
+
+const contacts_raw = JSON.parse(fs.readFileSync('./contacts.json', { encoding: 'utf-8' }))
+const contact_groups_raw = JSON.parse(fs.readFileSync('./contact_groups.json', { encoding: 'utf-8' }))
+
+const contacts = contacts_raw as Contacts
+const contact_groups = contact_groups_raw as ContactGroups
 
 dotenv.config()
 
@@ -10,13 +21,30 @@ const httpd_config = {
 
 const httpd_port = httpd_config.port
 const httpd = express()
+httpd.use(morgan('combined'))
 
 httpd.post('/call/contact/:id', (request, response) => {
-  response.json({ message: 'Hello World' })
+  const contact_id = request.params.id
+
+  if (contact_id in contacts) {
+    const contact = contacts[contact_id]
+
+    response.status(200).json({ message: 'Contact found', contact: contact, status: 200 })
+  } else {
+    response.status(404).json({ message: 'Contact not found', status: 404 })
+  }
 })
 
 httpd.post('/call/contact_group/:id', (request, response) => {
-  response.json({ message: 'Hello World' })
+  const contact_group_id = request.params.id
+
+  if (contact_group_id in contact_groups) {
+    const contact_group = contact_groups[contact_group_id]
+
+    response.status(200).json({ message: 'Contact found', contact_group: contact_group, status: 200 })
+  } else {
+    response.status(404).json({ message: 'Contact not found', status: 404 })
+  }
 })
 
 const httpd_listener = httpd.listen(httpd_port, () => {
