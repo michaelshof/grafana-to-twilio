@@ -73,8 +73,15 @@ Scripts are configured in `package.json`
 
 * `npm run build`: Runs the TypeScript Compiler.
 * `npm run lint`: Runs ESLint.
+* `npm run pm2:deploy`: Runs the PM2 deploy command.
+* `npm run pm2:save`: Runs the PM2 save command on the remote machine.
+* `npm run pm2:setup`: Runs the PM2 deploy setup command.
 * `npm run start`: Runs the compiled JavaScript with Node.
 * `npm run test`: Runs the tests with JEST.
+
+# PM2
+
+Define `ecosystem.config.js` file to use PM2 for deployments.
 
 # Docker
 
