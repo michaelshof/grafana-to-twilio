@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import ejs from 'ejs'
 import express from 'express'
 import morgan from 'morgan'
+import { rateLimit } from 'express-rate-limit'
 import twilioSDK from 'twilio'
 
 import { Contact, Contacts, ContactGroups } from './types'
@@ -48,6 +49,18 @@ const httpd_port = httpd_config.port
 const httpd = express()
 httpd.use(morgan('combined'))
 httpd.use(bodyParser.json())
+
+const httpd_call_limiter = rateLimit({
+  windowMs: httpd_config.rate_window_call,
+  limit: httpd_config.rate_limit_call,
+  standardHeaders: 'draft-8',
+  skipFailedRequests: true,
+})
+httpd.use('/call', httpd_call_limiter)
+
+console.info('CONFIG:', 'Express Port:', httpd_config.port)
+console.info('CONFIG:', 'Express Rate-Window /call:', httpd_config.rate_window_call)
+console.info('CONFIG:', 'Express Rate-Limit /call:', httpd_config.rate_limit_call)
 
 httpd.post('/call/contact/:id', (request, response) => {
   const contact_id = request.params.id

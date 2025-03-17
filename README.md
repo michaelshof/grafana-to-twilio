@@ -13,6 +13,8 @@ Using environment variables and `.env` file.
 ### HTTPD (express)
 
 - `HTTPD_PORT`: default `3000`
+- `HTTPD_RATE_WINDOW_CALL`: default `60000` ms
+- `HTTPD_RATE_LIMIT_CALL`: default `10`
 
 ### Twilio
 
