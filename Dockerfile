@@ -3,7 +3,7 @@ ENV NODE_ENV="production"
 
 LABEL org.opencontainers.image.authors="Michael Nowak <michael.nowak@sammatz.de>"
 LABEL org.opencontainers.image.source="https://github.com/michaelshof/grafana-to-twilio"
-LABEL org.opencontainers.image.version="0.1.0"
+LABEL org.opencontainers.image.version="1.0.0"
 LABEL org.opencontainers.image.vendor="Michaelshof Gem gGmbH"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.title="grafana-to-twilio"

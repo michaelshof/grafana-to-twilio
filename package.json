@@ -1,6 +1,6 @@
 {
   "name": "grafana-to-twilio",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Receives a Grafana Webhook to create a call via Twilio",
   "keywords": [
     "grafana",
