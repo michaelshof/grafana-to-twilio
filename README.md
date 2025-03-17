@@ -73,3 +73,8 @@ Scripts are configured in `package.json`
 * `npm run lint`: Runs ESLint.
 * `npm run start`: Runs the compiled JavaScript with Node.
 * `npm run test`: Runs the tests with JEST.
+
+# Docker
+
+* Exposes express server on port 3000.
+* Defines volume /srv/grafana-to-twilio/config where the configuration files `contacts.json`, `contact_groups.json` and `twiml.xml.ejs` are expected.
