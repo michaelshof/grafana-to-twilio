@@ -81,7 +81,10 @@ Scripts are configured in `package.json`
 
 # PM2
 
-Define `ecosystem.config.js` file to use PM2 for deployments.
+Define `ecosystem.config.js` file to use PM2 for deployments. Example: `pm2/ecosystem.example.js`
+
+* Copy the `post-setup.sh` script into the `shared` directory on your server.
+* Copy the `pre-deploy.sh` script into the `shared` directory on your server.
 
 # Docker
 
