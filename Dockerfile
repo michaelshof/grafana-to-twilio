@@ -15,7 +15,7 @@ COPY --chown=node:node dist/src dist/src
 COPY --chown=node:node package*.json .
 
 RUN mkdir config \
-    && npm install
+    && npm install --omit=dev
 
 ENV CONTACTS_FILE_PATH="config/contacts.json"
 ENV CONTACT_GROUPS_FILE_PATH="config/contact_groups.json"
