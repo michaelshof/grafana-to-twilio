@@ -22,22 +22,54 @@ Using environment variables and `.env` file.
 - `TWILIO_PHONE_NUMBER`: default ``
 - `TWILIO_TIMEOUT`: default `30`
 
+### Contacts
+
+Define your contacts in a JSON file in the following structure:
+
+```json
+{
+    "contact-id1": { "phone_number": "+123456879" },
+    "contact-id2": { "phone_number": "+128934765" },
+    "contact-id3": { "phone_number": "+123459876" },
+}
+```
+
+### Contact Groups
+
+Define your contact groups in a JSON file in the following structure:
+
+```json
+{
+    "group-id": [ "contact-id1", "contact-id2", "contact-id3" ]
+}
+```
+
+### TwiML
+
+In the XML you can use EJS to process the Web Hook Data and output parts of it.
+
+```xml
+<Response>
+	<Pause length="1"/>
+	<Say loop="3">
+		You have an alert from Grafana with the name <%= commonLabels.alertname %>. Message:
+		<break time="1s"/>
+		<%= commonAnnotations.summary %>
+		<break time="1s"/>
+		End of message.
+		<break time="1s"/>
+		It will be repeated three times.
+		<break time="3s"/>
+	</Say>
+	<Say>Goodbye.</Say>
+</Response>
+```
+
 # NPM
 
 Scripts are configured in `package.json`
 
-## build
-
-npx tsc
-
-## lint
-
-npx eslint
-
-## start
-
-node dist/src/index.js
-
-## test
-
-npx jest
+* `npm run build`: Runs the TypeScript Compiler.
+* `npm run lint`: Runs ESLint.
+* `npm run start`: Runs the compiled JavaScript with Node.
+* `npm run test`: Runs the tests with JEST.

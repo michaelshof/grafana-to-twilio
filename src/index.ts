@@ -16,7 +16,14 @@ timestampPatch(console)
 dotenv.config()
 import { file_paths, httpd_config, twilio_config } from './configs'
 
+file_paths.contacts = fs.realpathSync(file_paths.contacts)
+file_paths.contact_groups = fs.realpathSync(file_paths.contact_groups)
+file_paths.twiml_ejs = fs.realpathSync(file_paths.twiml_ejs)
 ensure_file_paths_exist(file_paths)
+
+console.info('CONFIG:', 'File-Path Contacts:', file_paths.contacts)
+console.info('CONFIG:', 'File-Path Contact Groups:', file_paths.contact_groups)
+console.info('CONFIG:', 'File-Path TwiML EJS:', file_paths.twiml_ejs)
 
 const contacts_raw = JSON.parse(fs.readFileSync(file_paths.contacts, { encoding: 'utf-8' }))
 const contact_groups_raw = JSON.parse(fs.readFileSync(file_paths.contact_groups, { encoding: 'utf-8' }))
@@ -25,12 +32,17 @@ const contacts = contacts_raw as Contacts
 const contact_groups = contact_groups_raw as ContactGroups
 
 ensure_contacts_valid(contacts)
-console.info('CONTACTS:', `Loaded ${Object.keys(contacts).length} contacts`)
+console.info('CONFIG:', `Loaded ${Object.keys(contacts).length} contacts`)
 ensure_contact_groups_valid(contact_groups, contacts)
-console.info('CONTACT-GROUPS:', `Loaded ${Object.keys(contact_groups).length} contact groups`)
+console.info('CONFIG:', `Loaded ${Object.keys(contact_groups).length} contact groups`)
 
 const twiml_ejs = fs.readFileSync(file_paths.twiml_ejs, { encoding: 'utf-8' })
 const twiml_template = ejs.compile(twiml_ejs)
+console.info('CONFIG:', 'Twilio Account SID:', twilio_config.account_sid)
+console.info('CONFIG:', 'Twilio Auth Token:', 'XXX')
+console.info('CONFIG:', 'Twilio Phone Number:', twilio_config.phone_number)
+console.info('CONFIG:', 'Twilio Timeout:', twilio_config.timeout)
+console.info('CONFIG:', 'Twilio Log Level:', twilio_config.log_level)
 
 const httpd_port = httpd_config.port
 const httpd = express()
@@ -76,6 +88,7 @@ httpd.post('/call/contact_group/:id', (request, response) => {
       twilio_client.calls.create({
         from: twilio_config.phone_number,
         to: contact.phone_number,
+        timeout: twilio_config.timeout,
         twiml: twiml,
       }).then((call_instance) => {
         console.info('TWILIO:', `Call from ${call_instance.from} to ${call_instance.to} with SID ${call_instance.sid} has status ${call_instance.status}`)
@@ -98,7 +111,6 @@ const httpd_listener = httpd.listen(httpd_port, () => {
 
 const twilio_client = twilioSDK(twilio_config.account_sid, twilio_config.auth_token, {
   logLevel: twilio_config.log_level,
-  timeout: twilio_config.timeout,
 })
 
 const twilio_balance = twilio_client.balance
