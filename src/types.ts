@@ -14,6 +14,7 @@ interface FilePaths {
 }
 
 interface HttpdConfig {
+  bearer_token: string
   port: number
   rate_window_call: number
   rate_limit_call: number

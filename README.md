@@ -12,8 +12,9 @@ Using environment variables and `.env` file.
 
 ### HTTPD (express)
 
+- `HTTPD_BEARER_TOKEN`: default `` - Optional Bearer Token authentication for API calls starting with /call.
 - `HTTPD_PORT`: default `3000`
-- `HTTPD_RATE_WINDOW_CALL`: default `60000` ms
+- `HTTPD_RATE_WINDOW_CALL`: default `60000` ms - Rate Limiting for API calls starting with /call.
 - `HTTPD_RATE_LIMIT_CALL`: default `10`
 
 ### Twilio
@@ -66,6 +67,8 @@ In the XML you can use EJS to process the Web Hook Data and output parts of it.
 	<Say>Goodbye.</Say>
 </Response>
 ```
+
+See: https://www.twilio.com/docs/voice/twiml
 
 # NPM
 

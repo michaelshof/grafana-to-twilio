@@ -5,6 +5,7 @@ import timestampPatch from 'console-stamp'
 import dotenv from 'dotenv'
 import ejs from 'ejs'
 import express from 'express'
+import bearerToken from 'express-bearer-token'
 import { rateLimit } from 'express-rate-limit'
 import morgan from 'morgan'
 import twilioSDK from 'twilio'
@@ -42,7 +43,7 @@ const twiml_template = ejs.compile(twiml_ejs)
 
 ensure_twilio_credentials_present(twilio_config)
 console.info('CONFIG:', 'Twilio Account SID:', twilio_config.account_sid)
-console.info('CONFIG:', 'Twilio Auth Token:', 'XXX')
+console.info('CONFIG:', 'Twilio Auth Token:', hide_inner_chars(twilio_config.auth_token))
 console.info('CONFIG:', 'Twilio Phone Number:', twilio_config.phone_number)
 console.info('CONFIG:', 'Twilio Timeout:', twilio_config.timeout)
 console.info('CONFIG:', 'Twilio Log Level:', twilio_config.log_level)
@@ -50,6 +51,7 @@ console.info('CONFIG:', 'Twilio Log Level:', twilio_config.log_level)
 const httpd_port = httpd_config.port
 const httpd = express()
 httpd.use(morgan('combined'))
+httpd.use(bearerToken())
 httpd.use(bodyParser.json())
 
 const httpd_call_limiter = rateLimit({
@@ -61,11 +63,22 @@ const httpd_call_limiter = rateLimit({
 httpd.use('/call', httpd_call_limiter)
 
 console.info('CONFIG:', 'Express Port:', httpd_config.port)
+console.info('CONFIG:', 'Express Bearer-Token:', hide_inner_chars(httpd_config.bearer_token))
 console.info('CONFIG:', 'Express Rate-Window /call:', httpd_config.rate_window_call)
 console.info('CONFIG:', 'Express Rate-Limit /call:', httpd_config.rate_limit_call)
 
 httpd.post('/call/contact/:id', (request, response) => {
   const contact_id = request.params.id
+
+  if (httpd_config.bearer_token.length !== 0) {
+    if (request.token === undefined || request.token.length === 0) {
+      response.status(401).json({ message: 'No Bearer Token provided', status: 401 })
+      return
+    } else if (request.token !== httpd_config.bearer_token) {
+      response.status(403).json({ message: 'Invalid Bearer Token provided', status: 403 })
+      return
+    }
+  }
 
   if (contact_id in contacts) {
     const contact = contacts[contact_id]
@@ -83,13 +96,25 @@ httpd.post('/call/contact/:id', (request, response) => {
     })
 
     response.status(200).json({ message: 'Call created', call: { contact: contact }, status: 200 })
+    return
   } else {
     response.status(404).json({ message: 'Contact not found', contact_id: contact_id, status: 404 })
+    return
   }
 })
 
 httpd.post('/call/contact_group/:id', (request, response) => {
   const contact_group_id = request.params.id
+
+  if (httpd_config.bearer_token.length !== 0) {
+    if (request.token === undefined || request.token.length === 0) {
+      response.status(401).json({ message: 'No Bearer Token provided', status: 401 })
+      return
+    } else if (request.token !== httpd_config.bearer_token) {
+      response.status(403).json({ message: 'Invalid Bearer Token provided', status: 403 })
+      return
+    }
+  }
 
   if (contact_group_id in contact_groups) {
     const contact_group = contact_groups[contact_group_id]
@@ -115,8 +140,10 @@ httpd.post('/call/contact_group/:id', (request, response) => {
     }
 
     response.status(200).json({ message: 'Calls created', calls: { contact_group: contact_group_contacts }, status: 200 })
+    return
   } else {
     response.status(404).json({ message: 'Contact Group not found', contact_group_id: contact_group_id, status: 404 })
+    return
   }
 })
 
@@ -151,3 +178,8 @@ process.on('SIGINT', () => {
       process.exit(0)
     })
 })
+
+function hide_inner_chars(secret: string, outer_length: number = 5) {
+  if (secret.length === 0) return ''
+  return secret.slice(0, outer_length) + '...' + secret.slice(outer_length * -1)
+}

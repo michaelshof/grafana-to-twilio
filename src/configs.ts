@@ -7,6 +7,7 @@ const file_paths: FilePaths = {
 }
 
 const httpd_config: HttpdConfig = {
+  bearer_token: process.env.HTTPD_BEARER_TOKEN || '',
   port: process.env.HTTPD_PORT ? parseInt(process.env.HTTPD_PORT) : 3000,
   rate_window_call: process.env.HTTPD_RATE_WINDOW_CALL ? parseInt(process.env.HTTPD_RATE_WINDOW_CALL) : 1 * 60 * 1000,
   rate_limit_call: process.env.HTTPD_RATE_LIMIT_CALL ? parseInt(process.env.HTTPD_RATE_LIMIT_CALL) : 10,
