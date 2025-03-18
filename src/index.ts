@@ -88,6 +88,7 @@ httpd.post('/call/contact/:id', (request, response) => {
     twilio_client.calls.create({
       from: twilio_config.phone_number,
       to: contact.phone_number,
+      timeout: twilio_config.timeout,
       twiml: twiml,
     }).then((call_instance) => {
       console.info('TWILIO:', `Call from ${call_instance.from} to ${call_instance.to} with SID ${call_instance.sid} has status ${call_instance.status}`)
