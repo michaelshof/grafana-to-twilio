@@ -13,9 +13,9 @@ describe('validations', () => {
     }
 
     beforeEach(() => {
-      file_paths.contacts = './config/contacts.json'
-      file_paths.contact_groups = './config/contact_groups.json'
-      file_paths.twiml_ejs = './config/twiml.xml.ejs'
+      file_paths.contacts = __dirname + '/config/contacts.json'
+      file_paths.contact_groups = __dirname + '/config/contact_groups.json'
+      file_paths.twiml_ejs = __dirname + '/config/twiml.xml.ejs'
     })
 
     it('works with existing file paths', () => {
