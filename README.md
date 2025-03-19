@@ -1,5 +1,7 @@
 # grafana-to-twilio
 
+![Node.js CI Badge](https://github.com/michaelshof/grafana-to-twilio/actions/workflows/node.js.yml/badge.svg)
+
 ## Configuration
 
 Using environment variables and `.env` file.
