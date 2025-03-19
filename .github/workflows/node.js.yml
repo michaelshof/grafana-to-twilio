@@ -11,13 +11,18 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    env:
+      HTTPD_BEARER_TOKEN: ${{ vars.HTTPD_BEARER_TOKEN }}
+      TWILIO_ACCOUNT_SID: ${{ vars.TWILIO_ACCOUNT_SID }}
+      TWILIO_AUTH_TOKEN: ${{ vars.TWILIO_AUTH_TOKEN }}
+      TWILIO_PHONE_NUMBER: ${{ vars.TWILIO_PHONE_NUMBER }}
 
     steps:
     - uses: actions/checkout@v4
