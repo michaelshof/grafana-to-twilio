@@ -8,3 +8,6 @@
 /ecosystem.config.js
 /*.json
 /*.ejs
+
+/test/.env
+/test/.env.*

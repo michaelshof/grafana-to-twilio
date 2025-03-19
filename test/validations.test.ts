@@ -1,8 +1,7 @@
-import { Contacts, ContactGroups, FilePaths, TwilioConfig, TwilioCredentials } from '../src/types'
-
-import { ensure_file_paths_exist, ensure_contacts_valid, ensure_contact_groups_valid, ensure_twilio_credentials_valid } from '../src/validations'
-
 import { faker } from '@faker-js/faker';
+
+import { Contacts, ContactGroups, FilePaths, TwilioConfig, TwilioCredentials } from '../src/types'
+import { ensure_file_paths_exist, ensure_contacts_valid, ensure_contact_groups_valid, ensure_twilio_credentials_valid } from '../src/validations'
 
 describe('validations', () => {
   describe('ensure_file_paths_exist', () => {
