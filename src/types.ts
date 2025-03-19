@@ -20,12 +20,15 @@ interface HttpdConfig {
   rate_limit_call: number
 }
 
-interface TwilioConfig {
+interface TwilioCredentials {
   account_sid: string
   auth_token: string
-  log_level: string
   phone_number: string
+}
+
+interface TwilioConfig extends TwilioCredentials {
+  log_level: string
   timeout: number
 }
 
-export { Contact, Contacts, ContactGroups, ContactGroup, FilePaths, HttpdConfig, TwilioConfig }
+export { Contact, Contacts, ContactGroups, ContactGroup, FilePaths, HttpdConfig, TwilioCredentials, TwilioConfig }

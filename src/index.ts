@@ -11,7 +11,7 @@ import morgan from 'morgan'
 import twilioSDK from 'twilio'
 
 import { Contact, Contacts, ContactGroups } from './types'
-import { ensure_file_paths_exist, ensure_contacts_valid, ensure_contact_groups_valid, ensure_twilio_credentials_present } from './validations'
+import { ensure_file_paths_exist, ensure_contacts_valid, ensure_contact_groups_valid, ensure_twilio_credentials_valid } from './validations'
 
 timestampPatch(console)
 
@@ -41,7 +41,7 @@ console.info('CONFIG:', `Loaded ${Object.keys(contact_groups).length} contact gr
 const twiml_ejs = fs.readFileSync(file_paths.twiml_ejs, { encoding: 'utf-8' })
 const twiml_template = ejs.compile(twiml_ejs)
 
-ensure_twilio_credentials_present(twilio_config)
+ensure_twilio_credentials_valid(twilio_config)
 console.info('CONFIG:', 'Twilio Account SID:', twilio_config.account_sid)
 console.info('CONFIG:', 'Twilio Auth Token:', hide_inner_chars(twilio_config.auth_token))
 console.info('CONFIG:', 'Twilio Phone Number:', twilio_config.phone_number)
