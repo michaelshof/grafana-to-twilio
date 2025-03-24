@@ -9,8 +9,10 @@ import request from 'supertest'
 
 dotenv.config({ path: __dirname + '/.env' })
 
+import { twilio_config } from '../src/configs';
 import httpd from '../src/httpd'
-import { Contacts, ContactGroups } from '../src/types'
+import { Contacts, ContactGroups, Contact, ContactGroup } from '../src/types'
+import { CallInstance } from 'twilio/lib/rest/api/v2010/account/call';
 
 describe('httpd', () => {
   const httpd_bearer_token = process.env.HTTPD_BEARER_TOKEN || ''
@@ -25,7 +27,9 @@ describe('httpd', () => {
   })
 
   let contact_group_id: string
+  let contact_group: ContactGroup
   let contact_id: string
+  let contact: Contact
 
   beforeEach(() => {
     httpd.enable('jest')
@@ -54,7 +58,9 @@ describe('httpd', () => {
     contact_groups[contact_group_id3] = [ contact_id3 ]
 
     contact_group_id = faker.helpers.arrayElement(Object.getOwnPropertyNames(contact_groups))
+    contact_group = contact_groups[contact_group_id]
     contact_id = faker.helpers.arrayElement(contact_groups[contact_group_id])
+    contact = contacts[contact_id]
   })
   afterEach(() => {
     for (const prop of Object.getOwnPropertyNames(contact_groups)) {
@@ -71,10 +77,10 @@ describe('httpd', () => {
     httpd.disable('jest')
   })
 
-  describe('POST /call/contact_group/:id', () => {
-    it('works with valid bearer token and contact group ID', (done) => {
+  describe('POST /call/contact/:id', () => {
+    it('works with valid bearer token and contact ID', (done) => {
       request(httpd)
-        .post(`/call/contact_group/${contact_group_id}`)
+        .post(`/call/contact/${contact_id}`)
         .auth(httpd_bearer_token, { type: 'bearer' })
         .expect('Content-Type', 'application/json; charset=utf-8')
         .expect(200, done)
@@ -126,9 +132,64 @@ describe('httpd', () => {
           .expect(404, done)
       })
     })
+
+    describe('twilio call creation', () => {
+      let spy_create: jest.SpyInstance<Promise<CallInstance>>
+
+      beforeEach(() => {
+        spy_create = jest.spyOn(twilio_client.calls, 'create')
+      })
+      afterEach(() => {
+        jest.restoreAllMocks()
+      })
+
+      it('uses the phone number of the contact', () => {
+        return request(httpd)
+          .post(`/call/contact/${contact_id}`)
+          .auth(httpd_bearer_token, { type: 'bearer' })
+          .expect(200)
+          .then(() => {
+            expect(contact.phone_number.length).toBeGreaterThan(8)
+            expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ to: contact.phone_number }))
+          })
+      })
+
+      it('uses the configured phone number', () => {
+        return request(httpd)
+          .post(`/call/contact/${contact_id}`)
+          .auth(httpd_bearer_token, { type: 'bearer' })
+          .expect(200)
+          .then(() => {
+            expect(twilio_config.phone_number.length).toBeGreaterThan(8)
+            expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ from: twilio_config.phone_number }))
+          })
+      })
+
+      it('uses the configured timeout', () => {
+        return request(httpd)
+          .post(`/call/contact/${contact_id}`)
+          .auth(httpd_bearer_token, { type: 'bearer' })
+          .expect(200)
+          .then(() => {
+            expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ timeout: twilio_config.timeout }))
+          })
+      })
+
+      it('uses the timeout of the contact if present', () => {
+        contact.timeout = faker.number.int({ min: 3, max: 600 })
+
+        return request(httpd)
+          .post(`/call/contact/${contact_id}`)
+          .auth(httpd_bearer_token, { type: 'bearer' })
+          .expect(200)
+          .then(() => {
+            expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ timeout: contact.timeout }))
+          })
+      })
+    })
   })
 
-  describe('POST /call/contact/:id', () => {
+  describe('POST /call/contact_group/:id', () => {
     it('works with valid bearer token and contact ID', (done) => {
       request(httpd)
         .post(`/call/contact_group/${contact_group_id}`)
@@ -181,6 +242,75 @@ describe('httpd', () => {
           .auth(httpd_bearer_token, { type: 'bearer' })
           .expect('Content-Type', 'application/json; charset=utf-8')
           .expect(404, done)
+      })
+    })
+
+    describe('twilio call creation', () => {
+      let spy_create: jest.SpyInstance<Promise<CallInstance>>
+      let group_contacts: Array<Contact>
+
+      beforeEach(() => {
+        spy_create = jest.spyOn(twilio_client.calls, 'create')
+        group_contacts = contact_group.map((contact_id) => { return contacts[contact_id] })
+      })
+      afterEach(() => {
+        jest.restoreAllMocks()
+      })
+
+      it('uses the phone number of the contact', () => {
+        return request(httpd)
+          .post(`/call/contact_group/${contact_group_id}`)
+          .auth(httpd_bearer_token, { type: 'bearer' })
+          .expect(200)
+          .then(() => {
+            for (const group_contact of group_contacts) {
+              expect(group_contact.phone_number.length).toBeGreaterThan(8)
+              expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ to: group_contact.phone_number }))
+            }
+          })
+      })
+
+      it('uses the configured phone number', () => {
+        return request(httpd)
+          .post(`/call/contact_group/${contact_group_id}`)
+          .auth(httpd_bearer_token, { type: 'bearer' })
+          .expect(200)
+          .then(() => {
+            expect(twilio_config.phone_number.length).toBeGreaterThan(8)
+            for (const group_contact of group_contacts) {
+              expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ from: twilio_config.phone_number }))
+            }
+          })
+      })
+
+      it('uses the configured timeout', () => {
+        return request(httpd)
+          .post(`/call/contact_group/${contact_group_id}`)
+          .auth(httpd_bearer_token, { type: 'bearer' })
+          .expect(200)
+          .then(() => {
+            for (const group_contact of group_contacts) {
+              expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ timeout: twilio_config.timeout }))
+            }
+          })
+      })
+
+      it('uses the timeout of the contact if present', () => {
+        contact.timeout = faker.number.int({ min: 3, max: 600 })
+
+        return request(httpd)
+          .post(`/call/contact_group/${contact_group_id}`)
+          .auth(httpd_bearer_token, { type: 'bearer' })
+          .expect(200)
+          .then(() => {
+            for (const group_contact of group_contacts) {
+              if (group_contact.timeout) {
+                expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ timeout: contact.timeout }))
+              } else {
+                expect(spy_create).toHaveBeenCalledWith(expect.objectContaining({ timeout: twilio_config.timeout }))
+              }
+            }
+          })
       })
     })
   })

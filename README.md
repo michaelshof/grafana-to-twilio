@@ -21,11 +21,11 @@ Using environment variables and `.env` file.
 
 ### Twilio
 
-- `TWILIO_ACCOUNT_SID`: default ``
-- `TWILIO_AUTH_TOKEN`: default ``
+- `TWILIO_ACCOUNT_SID`: default `` - The SID of the Account that will create the resource.
+- `TWILIO_AUTH_TOKEN`: default `` - The Auth Token of the Account that will create the resource.
 - `TWILIO_LOG_LEVEL`: default `debug`
-- `TWILIO_PHONE_NUMBER`: default ``
-- `TWILIO_TIMEOUT`: default `30`
+- `TWILIO_PHONE_NUMBER`: default `` - The phone number or client identifier to use as the caller id.
+- `TWILIO_TIMEOUT`: default `30` - The integer number of seconds that we should allow the phone to ring before assuming there is no answer. Can be overridden by each contact.
 
 ### Contacts
 
@@ -34,7 +34,7 @@ Define your contacts in a JSON file in the following structure:
 ```json
 {
     "contact-id1": { "phone_number": "+123456879" },
-    "contact-id2": { "phone_number": "+128934765" },
+    "contact-id2": { "phone_number": "+128934765", "timeout": 10 },
     "contact-id3": { "phone_number": "+123459876" },
 }
 ```
