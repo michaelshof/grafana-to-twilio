@@ -72,7 +72,14 @@ In the XML you can use EJS to process the Web Hook Data and output parts of it.
 
 See: https://www.twilio.com/docs/voice/twiml
 
-# NPM
+## API Endpoints
+
+- `POST /call/contact/<CONTACT-ID>` - To call a single contact.
+- `POST /call/contact_group/<CONTACT-GROUP-ID>` - To call a whole contact group.
+
+Both endpoints are designed to be used as grafana webhook contact point. Therefore both endpoints expect a request with a JSON body. See [grafana webhook configuration](https://grafana.com/docs/grafana/latest/alerting/configure-notifications/manage-contact-points/integrations/webhook-notifier/) documentation for details.
+
+## NPM
 
 Scripts are configured in `package.json`
 
@@ -84,14 +91,14 @@ Scripts are configured in `package.json`
 * `npm run start`: Runs the compiled JavaScript with Node.
 * `npm run test`: Runs the tests with JEST.
 
-# PM2
+## PM2
 
 Define `ecosystem.config.js` file to use PM2 for deployments. Example: `pm2/ecosystem.example.js`
 
 * Copy the `post-setup.sh` script into the `shared` directory on your server.
 * Copy the `pre-deploy.sh` script into the `shared` directory on your server.
 
-# Docker
+## Docker
 
 * Exposes express server on port 3000.
 * Defines volume `/srv/grafana-to-twilio/config` where the configuration files `contacts.json`, `contact_groups.json` and `twiml.xml.ejs` are expected.
